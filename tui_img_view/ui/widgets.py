@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+import time
+
+from rich.text import Text
 from textual.app import ComposeResult
-from textual.containers import Vertical
-from textual.widgets import Label, OptionList, SelectionList, Static
+from textual.binding import Binding
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Button, Input, Label, OptionList, RichLog, SelectionList, Static
 from textual.widgets.option_list import Option
 from textual.widgets.selection_list import Selection
 
@@ -71,3 +76,97 @@ class StatusBar(Static):
     }
     StatusBar.error { background: $error; }
     """
+
+
+class CommandInput(Input):
+    """The ``:`` line. Escape hands focus back to the image."""
+
+    BINDINGS = [Binding("escape", "back_to_image", "Back to image", show=False)]
+
+    def action_back_to_image(self) -> None:
+        self.screen.query_one("#image").focus()
+
+
+class CommandPanel(Vertical):
+    """Action buttons plus a ``:`` command line."""
+
+    DEFAULT_CSS = """
+    CommandPanel { height: auto; padding: 0 1; }
+    CommandPanel Label { padding: 0; }
+    CommandPanel .buttons {
+        layout: grid;
+        grid-size: 3;
+        grid-gutter: 0 1;
+        height: auto;
+        margin-bottom: 1;
+    }
+    CommandPanel Button { width: 100%; }
+    CommandPanel Input { border: tall $primary; }
+    """
+
+    ACTIONS: tuple[tuple[str, str], ...] = (
+        ("mode", "Mode"),
+        ("boxes", "Boxes"),
+        ("labels", "Labels"),
+        ("color", "Colour"),
+        ("pause", "Pause"),
+        ("next", "Next img"),
+        ("rescan", "Rescan"),
+        ("topics", "Topics"),
+        ("quit", "Quit"),
+    )
+
+    def compose(self) -> ComposeResult:
+        yield Label("Commands  (: to type)")
+        with Horizontal(classes="buttons"):
+            for action, text in self.ACTIONS:
+                yield Button(text, id=f"cmd-{action}", compact=True)
+        yield CommandInput(placeholder=":mode ascii · :boxes +/topic · :help", id="command-input")
+
+
+class LogPanel(RichLog):
+    """Timestamped event log fed from the ``tui_img_view`` logger."""
+
+    DEFAULT_CSS = """
+    LogPanel { height: 1fr; border-top: tall $primary; padding: 0 1; }
+    """
+
+    LEVEL_STYLE = {
+        logging.DEBUG: "dim",
+        logging.INFO: "",
+        logging.WARNING: "yellow",
+        logging.ERROR: "bold red",
+        logging.CRITICAL: "bold red",
+    }
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(
+            highlight=False, markup=False, wrap=True, min_width=10, max_lines=500, **kwargs
+        )
+        self.entries = 0
+
+    def add(self, when: float, level: int, message: str) -> None:
+        stamp = time.strftime("%H:%M:%S", time.localtime(when))
+        style = self.LEVEL_STYLE.get(level, "")
+        text = Text(f"{stamp} ", style="dim")
+        text.append(message, style=style)
+        self.write(text)
+        self.entries += 1
+
+
+class SidePanel(Vertical):
+    """Right-hand column: command panel on top, log below."""
+
+    DEFAULT_CSS = """
+    SidePanel {
+        width: 44;
+        height: 1fr;
+        border-left: tall $primary;
+        background: $surface;
+    }
+    SidePanel.hidden { display: none; }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield CommandPanel(id="commands")
+        yield LogPanel(id="log")

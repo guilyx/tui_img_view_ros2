@@ -8,10 +8,28 @@ ros2 run tui_img_view viewer ...      # same program, from a colcon workspace
 The viewer discovers image and box topics on its own. `-i` and `-b` only
 pre-select; you can switch in the sidebar at any time.
 
+## Layout
+
+```
+┌ status bar ─────────────────────────────────────────────────────────┐
+│ topics      │ image                              │ commands          │
+│ (t)         │                                    │ [Mode][Boxes]...  │
+│             │                                    │ : command line    │
+│             │                                    ├───────────────────┤
+│             │                                    │ log               │
+│             │                                    │ 12:00:01 subscr…  │
+└ footer ─────────────────────────────────────────────────────────────┘
+```
+
+The topic panel (++t++) and the sidebar (++s++) can each be hidden; the image
+takes whatever is left, keeping its aspect ratio.
+
 ## Keys
 
 | key | action |
 |---|---|
+| ++colon++ | focus the command line (opens the sidebar if hidden) |
+| ++s++ | show / hide the command + log sidebar |
 | ++t++ | show / hide the topic panel |
 | ++n++ | next image topic |
 | ++m++ | cycle render mode: half → quadrant → braille → ascii |
@@ -23,7 +41,36 @@ pre-select; you can switch in the sidebar at any time.
 | ++q++ | quit |
 
 In the panel, ++enter++ on an image topic shows it and ++space++ on a box topic
-toggles its overlay. Any number of box topics can be on at once.
+toggles its overlay. Any number of box topics can be on at once. ++esc++
+returns focus to the image from anywhere.
+
+## Commands
+
+Press ++colon++, type, ++enter++. Buttons in the command panel run the same
+commands. Every command's outcome is written to the log.
+
+| command | effect |
+|---|---|
+| `mode [name]` | set or cycle the render mode |
+| `image <topic>`, `next`, `prev` | choose the image topic |
+| `boxes [on\|off]` | draw boxes or not |
+| `boxes +<topic>`, `boxes -<topic>`, `boxes <topic>` | add, remove, toggle a box topic |
+| `labels [on\|off]`, `color [on\|off]`, `pause [on\|off]` | toggles |
+| `stale <seconds>` | hide boxes older than this |
+| `fps <hz>` | UI refresh rate |
+| `aspect <ratio>` | cell width/height used for aspect-correct fitting |
+| `rescan` | re-discover topics |
+| `topics`, `sidebar` | show / hide panels |
+| `clear` | clear the log |
+| `help`, `quit` | |
+
+## Log
+
+The log panel shows timestamped events from the viewer and its transports:
+subscriptions, topic switches, topics appearing or disappearing, decoder and
+subscription errors, bag loops, command results. It is fed from the standard
+`tui_img_view` Python logger, so a transport only has to call
+`logging.getLogger(__name__).info(...)` to appear there.
 
 ## Status bar
 
@@ -48,7 +95,7 @@ render time. Decoder or subscription errors appear at the end on a red bar.
 | `--cell-aspect 0.5` | your font's cell width/height, if the image looks stretched |
 | `--fps 20` | UI refresh rate |
 | `--stale 2.0` | hide boxes older than N seconds |
-| `--hide-topics` | start with the panel hidden |
+| `--hide-topics`, `--hide-sidebar` | start with that panel hidden |
 | `--snapshot` | print one frame as ANSI text and exit |
 | `--list-topics` | print discovered topics and exit |
 | `--adapter`, `--box-type`, `--box-types` | see [Custom box message types](custom-box-types.md) |

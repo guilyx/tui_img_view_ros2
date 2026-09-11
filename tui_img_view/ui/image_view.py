@@ -16,12 +16,15 @@ from tui_img_view.render.pipeline import Renderer
 class ImageView(Widget):
     """Renders the latest frame + detections to fit its own size."""
 
+    can_focus = True
+
     DEFAULT_CSS = """
     ImageView {
         width: 1fr;
         height: 1fr;
         background: $background;
     }
+    ImageView:focus { border: none; }
     """
 
     def __init__(self, renderer: Renderer | None = None, **kwargs) -> None:

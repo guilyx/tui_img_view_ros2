@@ -9,6 +9,7 @@ other front-ends.
 from __future__ import annotations
 
 import contextlib
+import logging
 import threading
 import time
 from collections import deque
@@ -17,6 +18,8 @@ from dataclasses import dataclass, field
 
 from tui_img_view.core.transport import Subscription, Transport
 from tui_img_view.core.types import Detections, Frame, TopicInfo, TopicKind
+
+log = logging.getLogger(__name__)
 
 
 class RateMeter:
@@ -165,6 +168,7 @@ class ViewerSession:
         except Exception as exc:  # noqa: BLE001
             self._set_error(f"subscribe {topic}: {exc}")
             return
+        log.info("subscribed image %s", topic)
         with self._lock:
             if self._image_topic == topic:
                 self._image_sub = sub
@@ -202,6 +206,7 @@ class ViewerSession:
         except Exception as exc:  # noqa: BLE001
             self._set_error(f"subscribe {topic}: {exc}")
             return
+        log.info("subscribed boxes %s", topic)
         with self._lock:
             self._box_subs[topic] = sub
             self._version += 1
@@ -213,6 +218,7 @@ class ViewerSession:
             self._version += 1
         if sub is not None:
             _safe_close(sub)
+            log.info("unsubscribed boxes %s", topic)
 
     def toggle_box_topic(self, topic: str) -> bool:
         if topic in self._box_subs:
@@ -259,6 +265,7 @@ class ViewerSession:
         return _on_detections
 
     def _set_error(self, message: str) -> None:
+        log.warning("%s", message)
         with self._lock:
             self._error = message
             self._version += 1

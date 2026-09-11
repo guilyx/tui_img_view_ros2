@@ -95,10 +95,16 @@ tui-img-view -t fake --snapshot -b /detector/detections
 tui-img-view --list-topics
 ```
 
+Layout: topic panel on the left, the image in the middle, and a sidebar on
+the right with a **command panel** (buttons plus a `:` command line) over a
+scrolling **log** of subscriptions, topic changes and decoder errors.
+
 Keys:
 
 | key | action                          |
 |-----|---------------------------------|
+| `:` | type a command (see below)      |
+| `s` | show/hide the command + log sidebar |
 | `t` | show/hide the topic panel       |
 | `n` | next image topic                |
 | `m` | cycle render mode               |
@@ -109,8 +115,17 @@ Keys:
 | `r` | rescan topics                   |
 | `q` | quit                            |
 
-In the panel: `Enter` on an image topic to view it, `Space` on a box topic to
-toggle its overlay.
+In the topic panel: `Enter` on an image topic to view it, `Space` on a box
+topic to toggle its overlay.
+
+Commands (press `:`; `Esc` goes back to the image):
+
+```
+mode [half|quadrant|braille|ascii]   image <topic>   next   prev
+boxes [on|off|+<topic>|-<topic>|<topic>]   labels [on|off]   color [on|off]
+pause [on|off]   stale <seconds>   fps <hz>   aspect <w/h>
+rescan   topics   sidebar   clear   help   quit
+```
 
 Useful flags: `-m ascii|half|quadrant|braille`, `--no-color`, `--no-labels`,
 `--stale 2.0` (hide boxes older than N seconds), `--cell-aspect 0.5` (tune if

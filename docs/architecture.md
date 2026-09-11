@@ -8,7 +8,7 @@ tui_img_view/
 ├── render/      Frame + boxes → Canvas of (char, fg, bg) cells
 │                raster modes · box overlay · ANSI serialiser
 ├── transports/  fake · manual · bag (MCAP) · ros2 (rclpy, codecs, adapters)
-└── ui/          Textual app: ImageView (render_line), topic panel, status bar
+└── ui/          Textual app: ImageView (render_line), topic panel, command panel + log, status bar
 ```
 
 ## Data flow

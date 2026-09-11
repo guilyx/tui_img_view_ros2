@@ -94,6 +94,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--hide-topics", action="store_true", help="start with the topic panel hidden"
     )
     parser.add_argument(
+        "--hide-sidebar", action="store_true", help="start with the command/log sidebar hidden"
+    )
+    parser.add_argument(
         "--stale",
         type=float,
         default=2.0,
@@ -251,6 +254,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         renderer=renderer,
         refresh_hz=args.fps,
         show_topics=not args.hide_topics,
+        show_sidebar=not args.hide_sidebar,
     )
     try:
         session.start()

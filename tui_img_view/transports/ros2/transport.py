@@ -10,6 +10,7 @@ Options (``--transport-opt``): ``node_name``, ``qos`` (``sensor`` | ``reliable``
 
 from __future__ import annotations
 
+import logging
 import threading
 from collections.abc import Mapping
 from typing import Any
@@ -27,6 +28,7 @@ from tui_img_view.transports.ros2.codecs import decode_compressed, decode_image
 from tui_img_view.transports.ros2.detections import DETECTION_ADAPTERS
 
 IMAGE_TYPES = ("sensor_msgs/msg/Image", "sensor_msgs/msg/CompressedImage")
+log = logging.getLogger(__name__)
 
 
 class Ros2Transport(Transport):
@@ -89,6 +91,9 @@ class Ros2Transport(Transport):
         self._executor.add_node(self._node)
         self._thread = threading.Thread(target=self._spin, name="ros2-spin", daemon=True)
         self._thread.start()
+        log.info(
+            "node /%s spinning (qos=%s, depth=%d)", self._node_name, self._qos_kind, self._depth
+        )
 
     def _spin(self) -> None:
         try:
@@ -178,10 +183,13 @@ class Ros2Transport(Transport):
             try:
                 handler(msg)
             except Exception as exc:  # noqa: BLE001 - keep spinning, report in status bar
+                if self.last_error != f"{topic}: {exc}":
+                    log.error("%s: %s", topic, exc)
                 self.last_error = f"{topic}: {exc}"
 
         with self._lock:
             sub = node.create_subscription(msg_cls, topic, _on_msg, self._qos())
+        log.info("subscribed %s [%s]", topic, type_name)
 
         def _close() -> None:
             with self._lock:

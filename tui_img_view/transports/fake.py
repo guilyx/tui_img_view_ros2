@@ -8,6 +8,7 @@ with a scanning box instead.
 
 from __future__ import annotations
 
+import logging
 import math
 import threading
 import time
@@ -24,6 +25,7 @@ IMAGE_TOPIC = "/camera/image_raw"
 GRAY_TOPIC = "/camera/mono/image_raw"
 DETECTIONS_TOPIC = "/detector/detections"
 TRACKS_TOPIC = "/tracker/tracks"
+log = logging.getLogger(__name__)
 
 
 class _Ball:
@@ -122,6 +124,7 @@ class FakeTransport(Transport):
         self._inner.start()
         self._thread = threading.Thread(target=self._run, name="fake-transport", daemon=True)
         self._thread.start()
+        log.info("fake scene %dx%d at %g fps", self.width, self.height, self.fps)
 
     def stop(self) -> None:
         self._stop.set()

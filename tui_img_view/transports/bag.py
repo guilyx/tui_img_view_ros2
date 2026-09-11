@@ -10,6 +10,7 @@ Options (``-o``): ``path`` (an ``.mcap`` file or a rosbag2 directory, required),
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 from collections.abc import Callable, Mapping
@@ -28,6 +29,8 @@ from tui_img_view.transports.manual import ManualTransport
 from tui_img_view.transports.ros2.codecs import decode_compressed, decode_image
 from tui_img_view.transports.ros2.detections import DETECTION_ADAPTERS
 from tui_img_view.transports.ros2.transport import IMAGE_TYPES
+
+log = logging.getLogger(__name__)
 
 
 def resolve_bag_file(path: str | Path) -> Path:
@@ -108,6 +111,17 @@ class McapTransport(Transport):
             if kind is not None:
                 self._inner.add_topic(channel.topic, kind, schema.name)
                 self._topic_types[channel.topic] = schema.name
+        stats = summary.statistics
+        if stats is not None:
+            span = (stats.message_end_time - stats.message_start_time) / 1e9
+            log.info(
+                "bag %s: %d messages, %.1fs, rate x%g%s",
+                self.path.name,
+                stats.message_count,
+                span,
+                self.rate,
+                ", loop" if self.loop else "",
+            )
         self._stop.clear()
         self._inner.start()
         self._thread = threading.Thread(target=self._run, name="bag-playback", daemon=True)
@@ -154,8 +168,10 @@ class McapTransport(Transport):
         while not self._stop.is_set():
             self._play_once()
             if not self.loop:
+                log.info("bag finished")
                 break
             self.loops_completed += 1
+            log.info("bag loop %d", self.loops_completed)
 
     def _play_once(self) -> None:
         first_log: int | None = None
