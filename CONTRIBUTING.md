@@ -56,4 +56,4 @@ section of `CHANGELOG.md` under the new version, tag `vX.Y.Z`.
 ## License
 
 By contributing you agree that your contributions are licensed under the
-[MIT License](LICENSE).
+[MIT License](https://guilyx.github.io/tui_img_view_ros2/license/) (the `LICENSE` file at the repository root).
