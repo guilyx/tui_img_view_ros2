@@ -1,9 +1,16 @@
 # tui_img_view
 
+[![CI](https://github.com/guilyx/tui_img_view_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/guilyx/tui_img_view_ros2/actions/workflows/ci.yml)
+[![Docs](https://github.com/guilyx/tui_img_view_ros2/actions/workflows/docs.yml/badge.svg)](https://guilyx.github.io/tui_img_view_ros2/)
+
 Watch an image stream **and its bounding boxes in the terminal**. No X, no GUI,
 works over SSH. Built for ROS 2, but the viewer core does not know what ROS is:
 a *transport* turns any message source into frames and boxes, and the ROS 2
 transport is just the first one.
+
+**Docs:** <https://guilyx.github.io/tui_img_view_ros2/>
+
+![The viewer playing the demo bag](docs/assets/demo.gif)
 
 ```
  /camera/image_raw  320x240 rgb8  lat 34ms  25.5 fps  mode:half  boxes:3/1t  draw 6ms
@@ -42,7 +49,9 @@ Example in `ascii` mode (the default `half` mode is 24-bit colour, 2 pixels per 
 - Status bar with resolution, encoding, fps, latency, box count and errors.
 - Aspect-ratio-correct scaling to whatever size the terminal is.
 - `--snapshot` prints one frame as ANSI text and exits (pipes, CI, bug reports).
-- A `fake` transport so you can try it with nothing installed.
+- A `bag` transport that plays rosbag2 MCAP files with **no ROS installed**, and a
+  `fake` transport so you can try it with nothing at all.
+- A real demo bag with photos and hand-annotated boxes in `demo/bags/tui_demo`.
 
 ## Install
 
@@ -69,7 +78,15 @@ source install/setup.bash
 tui-img-view --image /camera/image_raw --boxes /yolo/detections
 ros2 run tui_img_view viewer -i /camera/image_raw/compressed -b /detections -b /tracks
 
-# No ROS? Try the synthetic scene, or a photo with a scanning box.
+# The demo bag (real photos + boxes), with ROS ...
+ros2 bag play demo/bags/tui_demo --loop
+tui-img-view -i /camera/image/compressed -b /detector/detections
+
+# ... or without ROS, straight from the MCAP file.
+pip install -e ".[bag]"
+tui-img-view -t bag -o path=demo/bags/tui_demo -b /detector/detections
+
+# No data at all? A synthetic scene, or a photo with a scanning box.
 tui-img-view -t fake
 tui-img-view -t fake -o file=photo.jpg
 
@@ -102,6 +119,8 @@ options, repeatable).
 
 ROS 2 transport options: `-o qos=sensor|reliable`, `-o depth=1`,
 `-o node_name=tui_img_view`. Standard `--ros-args` are passed through.
+Bag transport options: `-o path=<file.mcap or rosbag2 dir>`, `-o rate=1.0`,
+`-o loop=true`.
 
 ## What the ROS 2 transport understands
 
@@ -181,7 +200,7 @@ tui_img_view/
 │                registry (built-ins + `tui_img_view.transports` entry points)
 ├── render/      Frame + boxes → Canvas of (char, fg, bg) cells
 │                raster modes · box overlay · ANSI serialiser
-├── transports/  fake · manual (push by hand) · ros2 (rclpy, codecs, adapters)
+├── transports/  fake · manual (push by hand) · bag (MCAP, no ROS) · ros2 (rclpy)
 └── ui/          Textual app: ImageView (render_line), topic panel, status bar
 ```
 
@@ -225,10 +244,15 @@ group, and select it with `--transport zmq`.
 ## Development
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,docs]"
 ruff check . && ruff format --check .
 pytest -q
+mkdocs serve          # docs at http://127.0.0.1:8000
 ```
+
+Docs are built from `docs/` with MkDocs and deployed to GitHub Pages by the
+`Docs` workflow on every push to `main`. `demo/make_demo_bag.py` regenerates
+the demo bag (see `demo/README.md`).
 
 The test suite runs without ROS: the ROS 2 codecs and detection adapters are
 duck-typed and tested against stub messages, and the Textual app is driven

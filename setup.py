@@ -17,7 +17,15 @@ setup(
         "rich>=13",
     ],
     extras_require={
-        "dev": ["pytest>=7", "pytest-asyncio>=0.21", "ruff>=0.4"],
+        "bag": ["mcap>=1.0", "mcap-ros2-support>=0.5"],
+        "docs": ["mkdocs>=1.6,<2", "mkdocs-material>=9.5,<10", "mkdocstrings[python]>=0.24"],
+        "dev": [
+            "pytest>=7",
+            "pytest-asyncio>=0.21",
+            "ruff>=0.4",
+            "mcap>=1.0",
+            "mcap-ros2-support>=0.5",
+        ],
     },
     python_requires=">=3.10",
     zip_safe=True,

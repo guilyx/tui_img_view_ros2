@@ -20,6 +20,7 @@ ENTRY_POINT_GROUP = "tui_img_view.transports"
 _BUILTIN: dict[str, str] = {
     "fake": "tui_img_view.transports.fake:FakeTransport",
     "ros2": "tui_img_view.transports.ros2:Ros2Transport",
+    "bag": "tui_img_view.transports.bag:McapTransport",
 }
 
 _REGISTERED: dict[str, type[Transport]] = {}
