@@ -1,0 +1,15 @@
+# Build metadata lives in setup.py so the package works both with pip and
+# with colcon (ament_python). This file only holds tool configuration.
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["SIM108"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["error::DeprecationWarning:tui_img_view"]
