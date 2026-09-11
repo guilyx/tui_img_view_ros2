@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
 package_name = "tui_img_view"
@@ -36,6 +38,31 @@ setup(
         "with pluggable transports (ROS 2 first)."
     ),
     license="MIT",
+    license_files=("LICENSE",),
+    url="https://github.com/guilyx/tui_img_view_ros2",
+    project_urls={
+        "Documentation": "https://guilyx.github.io/tui_img_view_ros2/",
+        "Source": "https://github.com/guilyx/tui_img_view_ros2",
+        "Issues": "https://github.com/guilyx/tui_img_view_ros2/issues",
+        "Changelog": "https://github.com/guilyx/tui_img_view_ros2/blob/main/CHANGELOG.md",
+    },
+    long_description=Path(__file__).with_name("README.md").read_text(encoding="utf-8"),
+    long_description_content_type="text/markdown",
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Topic :: Scientific/Engineering :: Image Processing",
+        "Topic :: Terminals",
+    ],
+    keywords="ros2 tui terminal image viewer bounding-box textual",
     entry_points={
         "console_scripts": [
             "tui-img-view = tui_img_view.cli:main",

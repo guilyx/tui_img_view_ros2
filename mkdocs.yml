@@ -4,6 +4,7 @@ site_url: https://guilyx.github.io/tui_img_view_ros2/
 repo_url: https://github.com/guilyx/tui_img_view_ros2
 repo_name: guilyx/tui_img_view_ros2
 edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2026 Erwin Lejeune &middot; MIT License
 
 theme:
   name: material
@@ -42,6 +43,10 @@ nav:
   - Reference:
       - Architecture: architecture.md
       - Python API: api.md
+  - Project:
+      - Contributing: contributing.md
+      - Changelog: changelog.md
+      - License: license.md
 
 markdown_extensions:
   - admonition
@@ -53,6 +58,8 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.snippets:
+      check_paths: true
 
 plugins:
   - search

@@ -49,3 +49,5 @@ a *transport* turns any message source into frames and boxes.
 - [Install](install.md), then [Usage](usage.md) for every key and flag.
 - [Demo bag](demo.md) to see it on real photos.
 - [Architecture](architecture.md) for how the pieces fit.
+- [Contributing](contributing.md), [Changelog](changelog.md) and the
+  [MIT License](license.md).
