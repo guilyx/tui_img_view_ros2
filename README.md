@@ -122,17 +122,55 @@ Boxes:
 
 Box coordinates are assumed to be in the pixel space of the displayed image.
 
-Add another message type in one function:
+### Custom box message types
+
+Any message with a list of boxes can be plugged in. Pick whichever fits:
+
+**No code.** Describe where the fields live, relative to one item of the list.
+Paths are dotted attributes with optional indexes; `origin` says whether `x`/`y`
+is the top-left corner (default) or the centre.
+
+```bash
+tui-img-view --box-type "my_msgs/msg/Objects:items=objects,x=rect.x,y=rect.y,w=rect.w,h=rect.h,label=hyps[0].cls,score=conf,id=uid,origin=center" \
+             -b /my/objects
+```
+
+The same, from a TOML file with `--box-types boxes.toml` (repeat the table per type):
+
+```toml
+[[box_types]]
+type   = "my_msgs/msg/Objects"
+items  = "objects"          # path to the sequence; omit if the message is one box
+x      = "rect.x"
+y      = "rect.y"
+w      = "rect.w"
+h      = "rect.h"
+label  = "hyps[0].cls"      # optional
+score  = "conf"             # optional
+id     = "uid"              # optional
+origin = "center"           # or "topleft" (default)
+```
+
+**Python.** One function per type; the message is duck-typed so it also works with
+stubs in tests. Load it with `--adapter my_pkg.adapters` (or
+`--adapter my_pkg.adapters:setup` to call a function after import).
 
 ```python
-from tui_img_view.transports.ros2.detections import register_detection_adapter
 from tui_img_view import BoundingBox, Detections
+from tui_img_view.transports.ros2.detections import register_detection_adapter
 
 
 @register_detection_adapter("my_msgs/msg/Objects")
 def my_objects(msg):
     return Detections(BoundingBox(o.x, o.y, o.w, o.h, label=o.name) for o in msg.objects)
 ```
+
+**Packaged.** Expose the module or setup function as a
+`tui_img_view.detection_adapters` entry point and it is loaded on every start,
+no flags needed.
+
+Registered types show up in topic discovery and the sidebar like the built-in
+ones. Pass `--adapter` / `--box-type` before `--list-topics` to check.
 
 ## Architecture
 

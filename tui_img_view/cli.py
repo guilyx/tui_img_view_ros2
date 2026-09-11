@@ -110,7 +110,47 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--list-topics", action="store_true", help="print discovered topics and exit"
     )
+    plug = parser.add_argument_group("custom box message types")
+    plug.add_argument(
+        "--adapter",
+        action="append",
+        default=[],
+        metavar="MODULE[:FUNC]",
+        help="import a Python module that registers detection adapters (repeatable)",
+    )
+    plug.add_argument(
+        "--box-type",
+        action="append",
+        default=[],
+        metavar="SPEC",
+        help=(
+            "declare a box message type without code: "
+            "'pkg/msg/Type:items=detections,x=bbox.x,y=bbox.y,w=bbox.w,h=bbox.h"
+            "[,label=..,score=..,id=..,origin=topleft|center]' (repeatable)"
+        ),
+    )
+    plug.add_argument(
+        "--box-types", metavar="FILE.toml", help="TOML file with [[box_types]] tables (same keys)"
+    )
     return parser
+
+
+def register_custom_box_types(args: argparse.Namespace) -> list[str]:
+    """Apply --adapter / --box-type / --box-types and entry points. Returns new type names."""
+    from tui_img_view.transports.ros2 import detections as det
+
+    added: list[str] = []
+    try:
+        added += det.load_entry_point_adapters()
+        added += det.load_adapter_plugins(args.adapter)
+        for spec in args.box_type:
+            added.append(det.parse_box_type_spec(spec).register().type_name)
+        if args.box_types:
+            for field_map in det.load_box_types_file(args.box_types):
+                added.append(field_map.register().type_name)
+    except (ImportError, AttributeError, ValueError, OSError, RuntimeError) as exc:
+        raise SystemExit(f"error: {exc}") from exc
+    return added
 
 
 def _make_session(args: argparse.Namespace) -> ViewerSession:
@@ -193,8 +233,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     raw = list(sys.argv[1:] if argv is None else argv)
     ours, ros_args = strip_ros_args(raw)
     args = build_parser().parse_args(ours)
-    if ros_args and args.transport == "ros2":
-        args.transport_opt = list(args.transport_opt)
+    register_custom_box_types(args)
     session = _make_session(args)
     if ros_args and hasattr(session.transport, "_args"):
         session.transport._args = [sys.argv[0], *ros_args]  # type: ignore[attr-defined]
