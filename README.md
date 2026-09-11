@@ -128,6 +128,7 @@ Add another message type in one function:
 from tui_img_view.transports.ros2.detections import register_detection_adapter
 from tui_img_view import BoundingBox, Detections
 
+
 @register_detection_adapter("my_msgs/msg/Objects")
 def my_objects(msg):
     return Detections(BoundingBox(o.x, o.y, o.w, o.h, label=o.name) for o in msg.objects)
@@ -161,16 +162,22 @@ class ZmqTransport(Transport):
     name = "zmq"
 
     @classmethod
-    def from_options(cls, options):        # -o key=value from the CLI
+    def from_options(cls, options):
+        """Built from `-o key=value` CLI options."""
         return cls(options.get("endpoint", "tcp://localhost:5555"))
 
-    def start(self): ...                   # connect, spawn a receive thread
+    def start(self):
+        """Connect and spawn a receive thread."""
+
     def stop(self): ...
+
     def list_topics(self) -> list[TopicInfo]: ...
-    def subscribe_image(self, topic, callback):   # callback(Frame) from any thread
-        ...; return subscription           # anything with .close()
-    def subscribe_boxes(self, topic, callback):   # callback(Detections)
-        ...
+
+    def subscribe_image(self, topic, callback):
+        """Call `callback(Frame)` from any thread; return anything with `.close()`."""
+
+    def subscribe_boxes(self, topic, callback):
+        """Same, with `callback(Detections)`."""
 ```
 
 Register it via `tui_img_view.core.registry.register_transport(ZmqTransport)`

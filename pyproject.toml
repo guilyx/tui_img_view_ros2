@@ -3,6 +3,8 @@
 
 [tool.ruff]
 line-length = 100
+# Newer ruff also formats code blocks in Markdown; keep prose out of the format gate.
+exclude = ["*.md"]
 target-version = "py310"
 
 [tool.ruff.lint]
