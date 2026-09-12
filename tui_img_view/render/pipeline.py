@@ -11,6 +11,7 @@ from PIL import Image
 from tui_img_view.core.types import Detections, Frame
 from tui_img_view.render.boxes import BoxTransform, draw_boxes
 from tui_img_view.render.canvas import Canvas
+from tui_img_view.render.filters import FILTER_ORDER, apply_filters, get_filter, next_filter
 from tui_img_view.render.rasterize import RasterMode, get_mode, to_grayscale
 
 
@@ -79,12 +80,15 @@ class Renderer:
         show_boxes: bool = True,
         show_labels: bool = True,
         cell_aspect: float = 0.5,
+        filters: Iterable[str] = (),
     ) -> None:
         self._mode: RasterMode = get_mode(mode)
         self.color = color
         self.show_boxes = show_boxes
         self.show_labels = show_labels
         self.cell_aspect = cell_aspect
+        self._filters: list[str] = []
+        self.set_filters(filters)
         self.last_placement: Placement | None = None
         self.last_box_count = 0
 
@@ -95,6 +99,39 @@ class Renderer:
     @mode.setter
     def mode(self, name: str) -> None:
         self._mode = get_mode(name)
+
+    # -- filters -----------------------------------------------------------
+
+    @property
+    def filters(self) -> tuple[str, ...]:
+        """Active filters, in application order."""
+        return tuple(self._filters)
+
+    def set_filters(self, names: Iterable[str]) -> None:
+        names = list(names)
+        for name in names:
+            get_filter(name)  # validate before mutating
+        self._filters = list(dict.fromkeys(names))
+
+    def toggle_filter(self, name: str) -> bool:
+        """Add ``name`` to the end of the stack, or remove it. Returns the new state."""
+        get_filter(name)
+        if name in self._filters:
+            self._filters.remove(name)
+            return False
+        self._filters.append(name)
+        return True
+
+    def clear_filters(self) -> None:
+        self._filters = []
+
+    def cycle_filter(self) -> tuple[str, ...]:
+        self._filters = next_filter(self._filters)
+        return self.filters
+
+    @staticmethod
+    def available_filters() -> tuple[str, ...]:
+        return FILTER_ORDER
 
     def render(
         self,
@@ -115,6 +152,8 @@ class Renderer:
         pw, ph = self._mode.cell_px
         pixels = frame.pixels if self.color else to_grayscale(frame.pixels)
         small = resize_rgb(pixels, placement.cols * pw, placement.rows * ph)
+        if self._filters:
+            small = apply_filters(small, self._filters)
         canvas.blit(self._mode.rasterize(small), placement.x0, placement.y0)
         if self.show_boxes:
             boxes = [b for d in detections for b in d.boxes]

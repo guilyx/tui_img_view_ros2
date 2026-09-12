@@ -36,7 +36,8 @@ class CommandResult:
 HELP = (
     "mode [half|quadrant|braille|ascii]  image <topic>  next  prev  "
     "boxes [on|off|+<topic>|-<topic>|<topic>]  labels [on|off]  color [on|off]  "
-    "pause [on|off]  stale <s>  fps <hz>  aspect <w/h>  rescan  topics  sidebar  clear  quit"
+    "pause [on|off]  filter [<name>|+<name>|-<name>|off]  filters  "
+    "stale <s>  fps <hz>  aspect <w/h>  rescan  topics  sidebar  clear  quit"
 )
 
 _ON = {"on", "1", "true", "yes", "show"}
@@ -133,6 +134,39 @@ class CommandDispatcher:
         return self._toggle(arg, "color", "color")
 
     cmd_colour = cmd_color
+
+    def cmd_filter(self, arg: str | None) -> CommandResult:
+        r = self.c.renderer
+        if arg is None:
+            active = "+".join(r.filters) or "none"
+            return CommandResult(True, f"filters: {active}")
+        if arg.lower() in {"off", "none", "clear"}:
+            r.clear_filters()
+            self.c.redraw()
+            return CommandResult(True, "filters cleared")
+        if arg.lower() == "next":
+            r.cycle_filter()
+            self.c.redraw()
+            return CommandResult(True, f"filters: {'+'.join(r.filters) or 'none'}")
+        try:
+            if arg.startswith("+"):
+                if arg[1:] not in r.filters:
+                    r.toggle_filter(arg[1:])
+                state = True
+            elif arg.startswith("-"):
+                if arg[1:] in r.filters:
+                    r.toggle_filter(arg[1:])
+                state = False
+            else:
+                state = r.toggle_filter(arg)
+        except KeyError as exc:
+            return CommandResult(False, str(exc).strip("'\""))
+        self.c.redraw()
+        name = arg.lstrip("+-")
+        return CommandResult(True, f"filter {name} {'on' if state else 'off'}")
+
+    def cmd_filters(self, arg: str | None) -> CommandResult:
+        return CommandResult(True, "filters: " + ", ".join(self.c.renderer.available_filters()))
 
     def cmd_pause(self, arg: str | None) -> CommandResult:
         s = self.c.session

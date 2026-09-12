@@ -21,8 +21,8 @@ Data flows one way and crosses one thread boundary:
 3. The Textual app polls `session.snapshot()` at `--fps`. If the version
    moved (or the widget was resized) it re-renders; otherwise it only
    refreshes the status bar.
-4. `Renderer` fits the image to the widget, rasterises, overlays boxes, and
-   returns a `Canvas`.
+4. `Renderer` fits the image to the widget, applies the filter stack,
+   rasterises, overlays boxes, and returns a `Canvas`.
 5. `ImageView` turns the canvas into Textual `Strip`s once and serves them
    from `render_line`.
 
@@ -33,7 +33,8 @@ imports `rclpy`, so the renderer and session are testable in plain pytest.
 
 The renderer chooses the largest cell rectangle with the image's aspect ratio
 (`--cell-aspect` is the font's cell width/height, 0.5 for most fonts), resizes
-the image to `cols × px_w` by `rows × px_h` for the mode, and rasterises:
+the image to `cols × px_w` by `rows × px_h` for the mode, runs the active
+filters (`render/filters.py`, pure functions on RGB arrays), and rasterises:
 
 | mode | pixels per cell | colours per cell | how |
 |---|---|---|---|

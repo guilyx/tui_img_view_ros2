@@ -77,6 +77,19 @@ async def test_app_renders_and_reacts_to_keys():
         assert session.paused is False  # was paused above; button toggled it back
         assert log_panel.entries > entries_before
 
+        # Filters: key cycles, buttons toggle, status bar shows the stack.
+        await pilot.press("f")
+        assert app.renderer.filters == ("gray",)
+        app.query_one("#flt-invert", Button).press()
+        await pilot.pause()
+        assert app.renderer.filters == ("gray", "invert")
+        assert app.query_one("#flt-invert", Button).variant == "success"
+        assert "flt:gray+invert" in app.query_one(StatusBar).content
+        app.query_one("#flt-gray", Button).press()
+        await pilot.pause()
+        assert app.renderer.filters == ("invert",)
+        assert app.query_one("#flt-gray", Button).variant == "default"
+
         # Sidebar toggles.
         await pilot.press("s")
         assert app.query_one(SidePanel).has_class("hidden")

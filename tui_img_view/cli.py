@@ -17,6 +17,7 @@ from tui_img_view import __version__
 from tui_img_view.core.registry import available_transports, load_transport
 from tui_img_view.core.session import ViewerSession
 from tui_img_view.core.transport import TransportUnavailable
+from tui_img_view.render.filters import FILTER_ORDER
 from tui_img_view.render.pipeline import Renderer
 from tui_img_view.render.rasterize import MODE_ORDER
 
@@ -81,6 +82,18 @@ def build_parser() -> argparse.ArgumentParser:
         "-m", "--mode", choices=MODE_ORDER, default="half", help="render mode (default: half)"
     )
     parser.add_argument("--no-color", action="store_true", help="grayscale rendering")
+    parser.add_argument(
+        "-F",
+        "--filter",
+        action="append",
+        default=[],
+        choices=FILTER_ORDER,
+        metavar="NAME",
+        help=(
+            "image filter to start with, repeatable and applied in order "
+            f"({', '.join(FILTER_ORDER)})"
+        ),
+    )
     parser.add_argument("--no-boxes", action="store_true", help="start with boxes hidden")
     parser.add_argument("--no-labels", action="store_true", help="hide box captions")
     parser.add_argument(
@@ -175,6 +188,7 @@ def _make_renderer(args: argparse.Namespace) -> Renderer:
         show_boxes=not args.no_boxes,
         show_labels=not args.no_labels,
         cell_aspect=args.cell_aspect,
+        filters=args.filter,
     )
 
 

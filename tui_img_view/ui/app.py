@@ -17,7 +17,7 @@ from tui_img_view.render.rasterize import next_mode
 from tui_img_view.ui.commands import CommandDispatcher
 from tui_img_view.ui.image_view import ImageView
 from tui_img_view.ui.logbuffer import LogBuffer, attach
-from tui_img_view.ui.widgets import LogPanel, SidePanel, StatusBar, TopicPanel
+from tui_img_view.ui.widgets import CommandPanel, LogPanel, SidePanel, StatusBar, TopicPanel
 
 log = logging.getLogger("tui_img_view.ui")
 
@@ -38,6 +38,7 @@ class ViewerApp(App[None]):
         Binding("b", "toggle_boxes", "Boxes"),
         Binding("l", "toggle_labels", "Labels"),
         Binding("c", "toggle_color", "Colour"),
+        Binding("f", "cycle_filter", "Filter"),
         Binding("p", "toggle_pause", "Pause"),
         Binding("r", "refresh_topics", "Rescan"),
         Binding("escape", "focus_image", "Back to image", show=False),
@@ -130,6 +131,8 @@ class ViewerApp(App[None]):
         parts.append(f"boxes:{boxes}/{len(snap.box_topics)}t")
         if not self.renderer.color:
             parts.append("gray")
+        if self.renderer.filters:
+            parts.append("flt:" + "+".join(self.renderer.filters))
         if snap.paused:
             parts.append("[b]PAUSED[/b]")
         parts.append(f"draw {self._last_render_ms:.0f}ms")
@@ -160,6 +163,7 @@ class ViewerApp(App[None]):
 
     def redraw(self) -> None:
         self._last_version = -1
+        self.query_one(CommandPanel).set_active_filters(self.renderer.filters)
         self._tick()
 
     def set_fps(self, hz: float) -> None:
@@ -240,6 +244,11 @@ class ViewerApp(App[None]):
         log.info("colour %s", "on" if self.renderer.color else "off")
         self.redraw()
 
+    def action_cycle_filter(self) -> None:
+        active = self.renderer.cycle_filter()
+        log.info("filters: %s", "+".join(active) or "none")
+        self.redraw()
+
     def action_toggle_pause(self) -> None:
         paused = self.session.toggle_pause()
         log.info("paused" if paused else "resumed")
@@ -260,9 +269,12 @@ class ViewerApp(App[None]):
     @on(Button.Pressed)
     def _button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id or ""
-        if not button_id.startswith("cmd-"):
+        if button_id.startswith("flt-"):
+            self.run_command(f"filter {button_id[4:]}")
+        elif button_id.startswith("cmd-"):
+            self.run_command(button_id[4:])
+        else:
             return
-        self.run_command(button_id[4:])
         if button_id != "cmd-topics":
             self.query_one(ImageView).focus()
 

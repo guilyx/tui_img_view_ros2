@@ -38,6 +38,8 @@ a *transport* turns any message source into frames and boxes.
 - **Topic panel**: pick the image topic, toggle box topics.
 - **Command panel and log**: buttons and a `:` command line, with a scrolling
   log of subscriptions, topic changes and decoder errors.
+- **Image filters** that stack: grayscale, invert, sepia, blur, sharpen, edges,
+  emboss, threshold, posterize, autocontrast, equalize.
 - **Status bar**: resolution, encoding, fps, latency, box count, decoder errors.
 - **`--snapshot`**: one frame as ANSI text to stdout, for pipes and bug reports.
 - **Custom message types** without code, see

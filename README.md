@@ -35,6 +35,9 @@ tui-img-view -t fake                                                    # synthe
 - **Three-column layout**: topic panel, aspect-correct image, and a sidebar
   with a command panel (buttons plus a `:` command line) over a scrolling
   log of subscriptions, topic changes and decoder errors.
+- **Image filters** that stack in order: grayscale, invert, sepia, blur, sharpen,
+  edges, emboss, threshold, posterize, autocontrast, equalize. Toggle from the
+  command panel, `:filter <name>`, `f` to cycle, or `--filter` at launch.
 - **Status bar**: resolution, encoding, fps, latency, box count, errors.
 - **`--snapshot`** prints one frame as ANSI text and exits (pipes, CI, bug reports).
 - **Transports**: `ros2` (rclpy), `bag` (rosbag2 MCAP files, **no ROS installed**),
@@ -81,12 +84,13 @@ Topics are discovered on their own; `-i` and `-b` only pre-select.
 | `t` | topic panel | `c` | colour / grayscale |
 | `n` | next image topic | `p` | pause |
 | `m` | cycle render mode | `r` | rescan topics |
-| `Esc` | back to the image | `q` | quit |
+| `f` | cycle image filter | `q` | quit |
+| `Esc` | back to the image | | |
 
 Commands (`:` then `Enter`): `mode`, `image <topic>`, `next`, `prev`,
-`boxes [on|off|+topic|-topic|topic]`, `labels`, `color`, `pause`, `stale <s>`,
-`fps <hz>`, `aspect <ratio>`, `rescan`, `topics`, `sidebar`, `clear`, `help`,
-`quit`.
+`boxes [on|off|+topic|-topic|topic]`, `filter [name|+name|-name|next|off]`,
+`filters`, `labels`, `color`, `pause`, `stale <s>`, `fps <hz>`, `aspect <ratio>`,
+`rescan`, `topics`, `sidebar`, `clear`, `help`, `quit`.
 
 Transport options go through `-o key=value`: `ros2` takes `qos=sensor|reliable`,
 `depth`, `node_name` (and `--ros-args` passes through); `bag` takes `path`,
