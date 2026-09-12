@@ -74,6 +74,18 @@ def test_dispatcher_covers_every_command():
     assert d.run("pause").message == "paused" and c.session.paused
     assert d.run("pause off").message == "resumed"
 
+    assert d.run("filter").message == "filters: none"
+    assert d.run("filter blur").message == "filter blur on" and c.renderer.filters == ("blur",)
+    assert d.run("filter +blur").ok and c.renderer.filters == ("blur",)
+    assert d.run("filter +gray").ok and c.renderer.filters == ("blur", "gray")
+    assert d.run("filter").message == "filters: blur+gray"
+    assert d.run("filter -blur").message == "filter blur off" and c.renderer.filters == ("gray",)
+    assert d.run("filter gray").message == "filter gray off" and c.renderer.filters == ()
+    assert not d.run("filter nope").ok
+    assert d.run("filter next").message == "filters: gray"
+    assert d.run("filter off").message == "filters cleared" and c.renderer.filters == ()
+    assert d.run("filters").message.startswith("filters: gray, invert")
+
     assert d.run("stale 3").message == "stale 3s" and c.session.stale_after == 3.0
     assert d.run("stale").message == "stale 3s"
     assert d.run("fps 5").ok and "fps=5.0" in c.calls

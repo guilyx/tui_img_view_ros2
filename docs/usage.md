@@ -36,6 +36,7 @@ takes whatever is left, keeping its aspect ratio.
 | ++b++ | boxes on / off |
 | ++l++ | captions on / off |
 | ++c++ | colour / grayscale |
+| ++f++ | cycle image filter (none → each filter alone → none) |
 | ++p++ | pause |
 | ++r++ | rescan topics |
 | ++q++ | quit |
@@ -55,6 +56,8 @@ commands. Every command's outcome is written to the log.
 | `image <topic>`, `next`, `prev` | choose the image topic |
 | `boxes [on\|off]` | draw boxes or not |
 | `boxes +<topic>`, `boxes -<topic>`, `boxes <topic>` | add, remove, toggle a box topic |
+| `filter <name>`, `filter +<name>`, `filter -<name>` | toggle, add, remove a filter |
+| `filter`, `filter next`, `filter off`, `filters` | show active, cycle, clear, list available |
 | `labels [on\|off]`, `color [on\|off]`, `pause [on\|off]` | toggles |
 | `stale <seconds>` | hide boxes older than this |
 | `fps <hz>` | UI refresh rate |
@@ -63,6 +66,31 @@ commands. Every command's outcome is written to the log.
 | `topics`, `sidebar` | show / hide panels |
 | `clear` | clear the log |
 | `help`, `quit` | |
+
+## Filters
+
+Filters are applied to the image after it is scaled to the terminal and
+before it is rasterised, so they cost the same whatever the camera
+resolution. They **stack in the order you enable them**: `:filter gray` then
+`:filter edges` gives edges of the grayscale image. The status bar shows the
+stack as `flt:gray+edges`, and the buttons in the command panel light up for
+active filters. Boxes are unaffected.
+
+| filter | effect |
+|---|---|
+| `gray` | grayscale |
+| `invert` | negative |
+| `sepia` | warm sepia tone |
+| `blur` | Gaussian blur, radius 1.5 |
+| `sharpen` | unsharp mask |
+| `edges` | edge detection |
+| `emboss` | emboss relief |
+| `threshold` | black and white at 50 % luminance |
+| `posterize` | 3 bits per channel |
+| `contrast` | stretch contrast (autocontrast, 1 % cutoff) |
+| `equalize` | histogram equalisation |
+
+Start with filters from the command line: `--filter invert --filter blur`.
 
 ## Log
 
@@ -92,6 +120,7 @@ render time. Decoder or subscription errors appear at the end on a red bar.
 | `-b, --boxes TOPIC` | box topic to overlay, repeatable |
 | `-m, --mode MODE` | `half`, `quadrant`, `braille`, `ascii` |
 | `--no-color`, `--no-boxes`, `--no-labels` | start with that feature off |
+| `-F, --filter NAME` | image filter to start with, repeatable, applied in order |
 | `--cell-aspect 0.5` | your font's cell width/height, if the image looks stretched |
 | `--fps 20` | UI refresh rate |
 | `--stale 2.0` | hide boxes older than N seconds |

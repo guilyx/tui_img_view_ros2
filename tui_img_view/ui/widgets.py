@@ -13,6 +13,8 @@ from textual.widgets import Button, Input, Label, OptionList, RichLog, Selection
 from textual.widgets.option_list import Option
 from textual.widgets.selection_list import Selection
 
+from tui_img_view.render.filters import FILTER_ORDER, FILTERS
+
 
 class TopicPanel(Vertical):
     """Image topics (pick one) and box topics (toggle any)."""
@@ -101,6 +103,13 @@ class CommandPanel(Vertical):
         margin-bottom: 1;
     }
     CommandPanel Button { width: 100%; }
+    CommandPanel .filters {
+        layout: grid;
+        grid-size: 3;
+        grid-gutter: 0 1;
+        height: auto;
+        margin-bottom: 1;
+    }
     CommandPanel Input { border: tall $primary; }
     """
 
@@ -121,7 +130,16 @@ class CommandPanel(Vertical):
         with Horizontal(classes="buttons"):
             for action, text in self.ACTIONS:
                 yield Button(text, id=f"cmd-{action}", compact=True)
-        yield CommandInput(placeholder=":mode ascii · :boxes +/topic · :help", id="command-input")
+        yield Label("Filters  (f = cycle, click = toggle)")
+        with Horizontal(classes="filters"):
+            for name in FILTER_ORDER:
+                yield Button(name, id=f"flt-{name}", compact=True, tooltip=FILTERS[name][1])
+        yield CommandInput(placeholder=":mode ascii · :filter blur · :help", id="command-input")
+
+    def set_active_filters(self, active: tuple[str, ...]) -> None:
+        for name in FILTER_ORDER:
+            button = self.query_one(f"#flt-{name}", Button)
+            button.variant = "success" if name in active else "default"
 
 
 class LogPanel(RichLog):

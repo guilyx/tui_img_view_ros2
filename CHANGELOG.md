@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Image filters that stack in order (`gray`, `invert`, `sepia`, `blur`,
+  `sharpen`, `edges`, `emboss`, `threshold`, `posterize`, `contrast`,
+  `equalize`): toggle buttons in the command panel, `:filter` commands, the
+  `f` key to cycle, and `--filter` on the command line.
+
 ## [0.1.0] - 2026-09-11
 
 ### Added

@@ -24,6 +24,15 @@ def test_snapshot_and_list_topics(capsys):
     assert "\x1b[38;2;" in out and "┌" in out
 
 
+def test_filter_flag(capsys):
+    assert main(["-t", "fake", "--snapshot", "-F", "invert", "-F", "blur", "-m", "ascii"]) == 0
+    assert "\x1b[38;2;" in capsys.readouterr().out
+    import pytest
+
+    with pytest.raises(SystemExit):
+        main(["-t", "fake", "--snapshot", "-F", "nope"])
+
+
 def test_unknown_transport_exits():
     import pytest
 

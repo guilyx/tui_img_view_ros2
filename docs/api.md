@@ -36,6 +36,10 @@ The public surface for embedding the viewer or writing plugins.
     options:
       members: [Canvas]
 
+::: tui_img_view.render.filters
+    options:
+      members: [FILTERS, apply_filters, next_filter]
+
 ## Detection adapters
 
 ::: tui_img_view.transports.ros2.detections
