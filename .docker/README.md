@@ -67,7 +67,7 @@ as-is.
 
 ## Notes
 
-- The images run as the unprivileged `viewer` user (uid 1000).
+- The images run as an unprivileged `viewer` user (uid 1000 in `slim`; the first free uid in `ros2`, whose Ubuntu base already owns 1000).
 - `TERM=xterm-256color`, `COLORTERM=truecolor` and a UTF-8 locale are set so
   the block glyphs and 24-bit colour work; keep `-it` (compose `run` does).
 - The Python package is installed from the build context, so rebuild after

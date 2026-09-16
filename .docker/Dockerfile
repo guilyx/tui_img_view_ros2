@@ -74,7 +74,8 @@ ENV PATH=/opt/venv/bin:${PATH}
 COPY demo/bags ./demo/bags
 COPY .docker/entrypoint.sh /entrypoint.sh
 
-RUN useradd --create-home --uid 1000 viewer && chown -R viewer:viewer /app \
+# Ubuntu 24.04 bases already own uid 1000 ("ubuntu"), so let useradd pick a free one.
+RUN useradd --create-home viewer && chown -R viewer:viewer /app \
     && chmod +x /entrypoint.sh
 USER viewer
 
