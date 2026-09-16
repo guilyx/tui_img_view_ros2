@@ -43,3 +43,41 @@ jobs:
           pip install -e ".[docs,bag]"
       - name: Build docs (strict)
         run: mkdocs build --strict
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build slim image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: .docker/Dockerfile
+          target: slim
+          tags: tui_img_view:slim
+          load: true
+          cache-from: type=gha,scope=slim
+          cache-to: type=gha,scope=slim,mode=max
+      - name: Smoke test slim image
+        run: |
+          docker run --rm tui_img_view:slim -t fake --snapshot -b /detector/detections > /dev/null
+          docker run --rm tui_img_view:slim -t bag -o path=/app/demo/bags/tui_demo -b /detector/detections --snapshot > /dev/null
+          docker run --rm tui_img_view:slim --version
+      - name: Build ros2 image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: .docker/Dockerfile
+          target: ros2
+          tags: tui_img_view:ros2
+          load: true
+          cache-from: type=gha,scope=ros2
+          cache-to: type=gha,scope=ros2,mode=max
+      - name: Smoke test ros2 image
+        run: |
+          docker run --rm tui_img_view:ros2 python3 -c "import rclpy, tui_img_view.transports.ros2; rclpy.init(); rclpy.shutdown(); print('rclpy ok')"
+          docker run --rm tui_img_view:ros2 -t bag -o path=/app/demo/bags/tui_demo -b /detector/detections --snapshot > /dev/null
+          docker run --rm tui_img_view:ros2 ros2 bag info /app/demo/bags/tui_demo
+      - name: Validate compose file
+        run: docker compose -f .docker/docker-compose.yml config --quiet

@@ -67,6 +67,18 @@ colcon build --packages-select tui_img_view && source install/setup.bash
 `textual` has no rosdep key, hence the pip line. Full details:
 [Install](https://guilyx.github.io/tui_img_view_ros2/install/).
 
+### Docker
+
+```bash
+docker compose -f .docker/docker-compose.yml run --rm demo      # demo bag, no ROS on the host
+docker compose -f .docker/docker-compose.yml run --rm viewer    # live ROS 2 graph (host network)
+BAG=/data/my_bag docker compose -f .docker/docker-compose.yml run --rm bag -b /detections
+```
+
+Two images from one Dockerfile: `slim` (bags and the fake scene, no ROS) and
+`ros2` (rclpy on `ros:jazzy-ros-base`, `ROS_DISTRO` selectable). See
+[.docker/README.md](.docker/README.md).
+
 ## Usage
 
 ```bash

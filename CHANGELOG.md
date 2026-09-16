@@ -8,6 +8,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Docker: `.docker/Dockerfile` with `slim` (no ROS) and `ros2`
+  (`ros:<distro>-ros-base`) targets, a compose file with `demo`, `bag`,
+  `viewer` and `bag-play` services, and a CI job that builds both images
+  and smoke-tests them.
+
 - Image filters that stack in order (`gray`, `invert`, `sepia`, `blur`,
   `sharpen`, `edges`, `emboss`, `threshold`, `posterize`, `contrast`,
   `equalize`): toggle buttons in the command panel, `:filter` commands, the

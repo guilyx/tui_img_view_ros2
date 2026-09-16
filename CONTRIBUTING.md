@@ -36,6 +36,7 @@ CI runs the same on Python 3.10 and 3.12.
 | a new image encoding | `transports/ros2/codecs.py` + a test in `tests/test_codecs.py` |
 | a render mode | `render/rasterize.py` (`RasterMode` subclass) + `tests/test_rasterize.py` |
 | a key or command | `ui/app.py` bindings and `ui/commands.py`; update `docs/usage.md` and the README table |
+| container changes | `.docker/Dockerfile` and `.docker/docker-compose.yml`; CI builds both targets |
 
 Keep `render/` and `core/` free of Textual imports and everything outside
 `transports/ros2/transport.py` free of `rclpy` imports; the tests rely on it.
