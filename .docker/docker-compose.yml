@@ -1,0 +1,63 @@
+# docker compose -f .docker/docker-compose.yml run --rm <service> [tui-img-view args]
+#
+#   viewer    live ROS 2 graph on the host network (ros2 image)
+#   demo      the bundled demo bag, no ROS needed (slim image)
+#   bag       any MCAP bag from the host: BAG=/path/to/bag docker compose ... run --rm bag
+#   bag-play  `ros2 bag play` of the demo bag into the host's ROS 2 graph, to pair with `viewer`
+#
+# The viewer is a TUI: always `run` with a TTY (compose does this for `run`), not `up -d`.
+
+name: tui_img_view
+
+x-tui: &tui
+  tty: true
+  stdin_open: true
+  init: true
+
+x-ros2: &ros2
+  <<: *tui
+  image: tui_img_view:ros2
+  build:
+    context: ..
+    dockerfile: .docker/Dockerfile
+    target: ros2
+    args:
+      ROS_DISTRO: ${ROS_DISTRO:-jazzy}
+  # DDS discovery needs the host network and shared memory.
+  network_mode: host
+  ipc: host
+  environment:
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+    ROS_LOCALHOST_ONLY: ${ROS_LOCALHOST_ONLY:-0}
+    RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}
+
+services:
+  viewer:
+    <<: *ros2
+    # No default arguments: topics are discovered in the UI. Pass any on the run line:
+    #   docker compose -f .docker/docker-compose.yml run --rm viewer -i /cam/image_raw -b /dets
+
+  demo:
+    <<: *tui
+    image: tui_img_view:slim
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile
+      target: slim
+    command: ["-t", "bag", "-o", "path=/app/demo/bags/tui_demo", "-b", "/detector/detections"]
+
+  bag:
+    <<: *tui
+    image: tui_img_view:slim
+    build:
+      context: ..
+      dockerfile: .docker/Dockerfile
+      target: slim
+    volumes:
+      - ${BAG:-../demo/bags/tui_demo}:/bag:ro
+    command: ["-t", "bag", "-o", "path=/bag", "-o", "rate=${RATE:-1.0}"]
+
+  bag-play:
+    <<: *ros2
+    profiles: [ros-demo]
+    command: ["ros2", "bag", "play", "/app/demo/bags/tui_demo", "--loop"]

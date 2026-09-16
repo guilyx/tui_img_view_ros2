@@ -40,6 +40,22 @@ ros2 run tui_img_view viewer --help
     `pillow` resolve through rosdep (`python3-numpy`, `python3-pil`) but the
     pip line covers non-rosdep setups too.
 
+## Docker
+
+No install at all:
+
+```bash
+git clone https://github.com/guilyx/tui_img_view_ros2.git && cd tui_img_view_ros2
+docker compose -f .docker/docker-compose.yml run --rm demo
+```
+
+`.docker/Dockerfile` builds two targets: `slim` (`python:3.12-slim`, the
+`bag` and `fake` transports) and `ros2` (`ros:jazzy-ros-base` by default,
+the live `ros2` transport plus `ros2 bag play`). The compose file has
+`demo`, `bag` (`BAG=/path ... run --rm bag`), `viewer` (host network for DDS
+discovery, `ROS_DOMAIN_ID` respected) and `bag-play` services. Details and
+plain `docker run` equivalents: [`.docker/README.md`](https://github.com/guilyx/tui_img_view_ros2/blob/main/.docker/README.md).
+
 ## Check it works
 
 ```bash
