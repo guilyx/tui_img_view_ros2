@@ -33,6 +33,7 @@ theme:
 nav:
   - Home: index.md
   - Getting started:
+      - Docker tutorial: docker.md
       - Install: install.md
       - Usage: usage.md
       - Demo bag: demo.md

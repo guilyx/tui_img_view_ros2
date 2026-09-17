@@ -8,25 +8,29 @@ a *transport* turns any message source into frames and boxes.
 
 ## In one minute
 
-=== "With ROS 2"
+=== "Docker (recommended)"
+
+    ```bash
+    git clone https://github.com/guilyx/tui_img_view_ros2.git && cd tui_img_view_ros2
+    docker compose -f .docker/docker-compose.yml run --rm demo          # demo bag, no ROS
+    BAG=/data/rec docker compose -f .docker/docker-compose.yml run --rm bag   # your bag
+    docker compose -f .docker/docker-compose.yml run --rm viewer        # live ROS 2 graph
+    ```
+
+    Step by step: [Docker tutorial](docker.md).
+
+=== "pip, with ROS 2"
 
     ```bash
     pip install -e .
     tui-img-view --image /camera/image_raw --boxes /yolo/detections
     ```
 
-=== "With the demo bag, no ROS"
+=== "pip, demo bag"
 
     ```bash
     pip install -e ".[bag]"
     tui-img-view -t bag -o path=demo/bags/tui_demo -b /detector/detections
-    ```
-
-=== "Synthetic scene"
-
-    ```bash
-    pip install -e .
-    tui-img-view -t fake
     ```
 
 ## What you get
@@ -48,7 +52,8 @@ a *transport* turns any message source into frames and boxes.
 
 ## Where next
 
-- [Install](install.md), then [Usage](usage.md) for every key and flag.
+- [Docker tutorial](docker.md) is the fastest path; [Install](install.md)
+  for pip and colcon; [Usage](usage.md) for every key, command and flag.
 - [Demo bag](demo.md) to see it on real photos.
 - [Architecture](architecture.md) for how the pieces fit.
 - [Contributing](contributing.md), [Changelog](changelog.md) and the
