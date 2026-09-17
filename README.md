@@ -7,160 +7,64 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Watch an image stream **and its bounding boxes in the terminal**. No X, no GUI,
-works over SSH. Built for ROS 2, but the viewer core does not know what ROS is:
-a *transport* turns any message source into frames and boxes, and the ROS 2
-transport is just the first one.
+works over SSH. Built for ROS 2, transport-agnostic by design: `ros2`, rosbag2
+MCAP files with no ROS installed, or a synthetic scene.
 
-**Documentation:** <https://guilyx.github.io/tui_img_view_ros2/>
+**Docs:** <https://guilyx.github.io/tui_img_view_ros2/>
 
 ![The viewer playing the demo bag: topic panel, image, command panel and log](docs/assets/demo.gif)
 
-## Quick start
+## Quick start (Docker)
 
 ```bash
 git clone https://github.com/guilyx/tui_img_view_ros2.git && cd tui_img_view_ros2
-pip install -e ".[bag]"
 
-tui-img-view --image /camera/image_raw --boxes /yolo/detections        # live ROS 2
-tui-img-view -t bag -o path=demo/bags/tui_demo -b /detector/detections  # demo bag, no ROS needed
-tui-img-view -t fake                                                    # synthetic scene
+docker compose -f .docker/docker-compose.yml run --rm demo                        # bundled demo bag
+BAG=/data/my_recording docker compose -f .docker/docker-compose.yml run --rm bag   # your own MCAP bag
+docker compose -f .docker/docker-compose.yml run --rm viewer                      # live ROS 2 graph (Linux)
 ```
+
+Step-by-step, including live ROS 2 setup and troubleshooting:
+[Docker tutorial](https://guilyx.github.io/tui_img_view_ros2/docker/).
+
+Without Docker: `pip install -e ".[bag]"` then `tui-img-view -t bag -o path=demo/bags/tui_demo`,
+or `colcon build` it as an `ament_python` package. See
+[Install](https://guilyx.github.io/tui_img_view_ros2/install/).
 
 ## Features
 
-- **Four render modes**, cycled with `m`: `half` (▀ blocks, 24-bit colour),
-  `quadrant` (2x2 glyphs), `braille` (2x4 dithered dots), `ascii`.
-- **Boxes from any number of topics at once**, drawn as box glyphs with
-  `label score` / `#track_id` captions in stable per-label colours.
-- **Three-column layout**: topic panel, aspect-correct image, and a sidebar
-  with a command panel (buttons plus a `:` command line) over a scrolling
-  log of subscriptions, topic changes and decoder errors.
-- **Image filters** that stack in order: grayscale, invert, sepia, blur, sharpen,
-  edges, emboss, threshold, posterize, autocontrast, equalize. Toggle from the
-  command panel, `:filter <name>`, `f` to cycle, or `--filter` at launch.
-- **Status bar**: resolution, encoding, fps, latency, box count, errors.
-- **`--snapshot`** prints one frame as ANSI text and exits (pipes, CI, bug reports).
-- **Transports**: `ros2` (rclpy), `bag` (rosbag2 MCAP files, **no ROS installed**),
-  `fake` (synthetic scene or a photo), and yours via a four-method interface.
-- **Custom box message types** without code: `--box-type` / `--box-types file.toml`.
-- **Demo bag** with real photos and hand-annotated boxes in `demo/bags/tui_demo`.
+- Four render modes: half-block (24-bit colour), quadrant, braille, ascii.
+- Boxes from any number of topics at once, with label, score and track id.
+- Stackable image filters: gray, invert, sepia, blur, sharpen, edges, and more.
+- Topic panel, command panel with a `:` command line, and an event log.
+- `--snapshot` prints one frame as ANSI text for scripts and bug reports.
+- Reads `sensor_msgs/Image` and `CompressedImage` without cv_bridge, boxes from
+  `vision_msgs` and `yolo_msgs`, and any other box message via a one-line
+  [field map](https://guilyx.github.io/tui_img_view_ros2/custom-box-types/).
+- A [demo bag](https://guilyx.github.io/tui_img_view_ros2/demo/) with real photos
+  and hand-annotated boxes, playable with `ros2 bag play` or straight from the file.
 
-## Install
+## Keys
 
-Requirements: Python 3.10+ (Humble, Iron and Jazzy all qualify). ROS 2 is only
-needed for the `ros2` transport.
+`:` command · `s` sidebar · `t` topics · `n` next image · `m` mode · `f` filter ·
+`b` boxes · `l` labels · `c` colour · `p` pause · `r` rescan · `q` quit
 
-```bash
-pip install -e .            # viewer
-pip install -e ".[bag]"     # + rosbag2 MCAP playback without ROS
-pip install -e ".[dev]"     # + test and lint tools
-```
+Everything else, from every flag and command to writing your own transport:
 
-As an `ament_python` package in a colcon workspace (`ros2 run tui_img_view viewer`):
-
-```bash
-cd ~/ros2_ws/src && git clone https://github.com/guilyx/tui_img_view_ros2.git
-cd ~/ros2_ws && pip install textual pillow numpy
-colcon build --packages-select tui_img_view && source install/setup.bash
-```
-
-`textual` has no rosdep key, hence the pip line. Full details:
-[Install](https://guilyx.github.io/tui_img_view_ros2/install/).
-
-### Docker
-
-```bash
-docker compose -f .docker/docker-compose.yml run --rm demo      # demo bag, no ROS on the host
-docker compose -f .docker/docker-compose.yml run --rm viewer    # live ROS 2 graph (host network)
-BAG=/data/my_bag docker compose -f .docker/docker-compose.yml run --rm bag -b /detections
-```
-
-Two images from one Dockerfile: `slim` (bags and the fake scene, no ROS) and
-`ros2` (rclpy on `ros:jazzy-ros-base`, `ROS_DISTRO` selectable). See
-[.docker/README.md](.docker/README.md).
-
-## Usage
-
-```bash
-tui-img-view [-t ros2|bag|fake] [-i TOPIC] [-b TOPIC ...] [-m half|quadrant|braille|ascii] [options]
-ros2 run tui_img_view viewer ...                # same program from a colcon workspace
-ros2 bag play demo/bags/tui_demo --loop         # then view /camera/image/compressed
-```
-
-Topics are discovered on their own; `-i` and `-b` only pre-select.
-
-| key | action | key | action |
-|---|---|---|---|
-| `:` | type a command | `b` | boxes on/off |
-| `s` | command + log sidebar | `l` | captions on/off |
-| `t` | topic panel | `c` | colour / grayscale |
-| `n` | next image topic | `p` | pause |
-| `m` | cycle render mode | `r` | rescan topics |
-| `f` | cycle image filter | `q` | quit |
-| `Esc` | back to the image | | |
-
-Commands (`:` then `Enter`): `mode`, `image <topic>`, `next`, `prev`,
-`boxes [on|off|+topic|-topic|topic]`, `filter [name|+name|-name|next|off]`,
-`filters`, `labels`, `color`, `pause`, `stale <s>`, `fps <hz>`, `aspect <ratio>`,
-`rescan`, `topics`, `sidebar`, `clear`, `help`, `quit`.
-
-Transport options go through `-o key=value`: `ros2` takes `qos=sensor|reliable`,
-`depth`, `node_name` (and `--ros-args` passes through); `bag` takes `path`,
-`rate`, `loop`; `fake` takes `fps`, `width`, `height`, `objects`, `file`, `seed`.
-Every flag: [Usage](https://guilyx.github.io/tui_img_view_ros2/usage/).
-
-## Supported messages
-
-| kind | types |
+| | |
 |---|---|
-| images | `sensor_msgs/Image` (rgb/bgr/rgba/bgra 8-bit, mono8/16, 8UC*, 16UC1, 32FC1, 64FC1, rgb16/bgr16, yuv422, yuyv, bayer_*8), `sensor_msgs/CompressedImage` |
-| boxes | `vision_msgs/Detection2DArray`, `Detection2D`, `BoundingBox2DArray` (Foxy and Humble+ layouts), `yolo_msgs/DetectionArray` |
-
-Images are decoded without cv_bridge. Depth-like single-channel images are
-min–max normalised per frame. Box coordinates are taken to be in the pixel
-space of the displayed image.
-
-Any other box message plugs in without touching the viewer:
-
-```bash
-tui-img-view -b /my/objects --box-type \
-  "my_msgs/msg/Objects:items=objects,x=rect.x,y=rect.y,w=rect.w,h=rect.h,label=name,score=conf,origin=center"
-```
-
-or with `--box-types boxes.toml`, `--adapter my_pkg.adapters` (a
-`@register_detection_adapter` function), or a `tui_img_view.detection_adapters`
-entry point. See
-[Custom box message types](https://guilyx.github.io/tui_img_view_ros2/custom-box-types/).
-
-## Architecture
-
-```
-tui_img_view/
-├── core/        Frame · BoundingBox · Detections · Transport ABC · ViewerSession · registry
-├── render/      Frame + boxes → Canvas of (char, fg, bg) cells; four raster modes; ANSI output
-├── transports/  fake · manual · bag (MCAP, no ROS) · ros2 (rclpy, codecs, detection adapters)
-└── ui/          Textual app: image view, topic panel, command panel + log, status bar
-```
-
-Data flows one way: transport callback → `ViewerSession` (any thread) →
-`snapshot()` polled by the UI → `Renderer` → `Canvas` → screen. Nothing below
-`ui/` imports Textual and nothing outside `transports/ros2/transport.py`
-imports `rclpy`, so the whole pipeline is tested in plain pytest. A new
-transport is four methods; see
-[Writing a transport](https://guilyx.github.io/tui_img_view_ros2/transports/).
+| [Usage](https://guilyx.github.io/tui_img_view_ros2/usage/) | keys, commands, flags, filters, transport options |
+| [ROS 2 transport](https://guilyx.github.io/tui_img_view_ros2/ros2/) | supported encodings and detection messages, QoS |
+| [Custom box types](https://guilyx.github.io/tui_img_view_ros2/custom-box-types/) | plug in your own message without code |
+| [Writing a transport](https://guilyx.github.io/tui_img_view_ros2/transports/) | four methods to add a new source |
+| [Architecture](https://guilyx.github.io/tui_img_view_ros2/architecture/) | how the pieces fit |
 
 ## Contributing
 
-Bug reports and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md)
-for the development setup, test suite and conventions, and
-[CHANGELOG.md](CHANGELOG.md) for what changed.
-
-```bash
-pip install -e ".[dev,docs]"
-ruff check . && ruff format --check . && pytest -q && mkdocs build --strict
-```
+Issues and pull requests welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has the
+setup and checks; [CHANGELOG.md](CHANGELOG.md) tracks what changed.
 
 ## License
 
-Released under the [MIT License](LICENSE). Demo photographs are public domain
-(NASA) or CC0; see [demo/README.md](demo/README.md) for credits.
+[MIT](LICENSE). Demo photographs are public domain (NASA) or CC0; credits in
+[demo/README.md](demo/README.md).

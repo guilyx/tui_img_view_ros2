@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Docker is the primary path: a step-by-step Docker tutorial in the docs,
+  Docker first on the install page and in the README, and a leaner README
+  that links into the docs for reference material.
+
 ### Added
 
 - Docker: `.docker/Dockerfile` with `slim` (no ROS) and `ros2`
